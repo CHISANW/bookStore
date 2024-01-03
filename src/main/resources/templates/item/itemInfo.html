@@ -1,0 +1,207 @@
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{/fragements/layout/headerandfooter}">
+<head>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script th:inline="javascript">
+        var csrfToken = /*[[${_csrf.token}]]*/ '';
+        var csrfHeader = /*[[${_csrf.headerName}]]*/ '';
+
+    </script>
+
+    <script>
+        var originalItemName = $('#itemName').text().trim(); // 원래 상품 이름 저장
+
+        function goToPurchasePage() {
+            var originalItemId = $('#bookId').val(); // 원래 상품 ID 저장
+            var itemQuantity = $('#itemQuantity').val(); // 아이템 수량 가져오기
+
+            // 구매 페이지로 이동 (수량을 쿼리 문자열로 전달)
+            window.location.href = '/order?itemId=' + originalItemId + '&quantity=' + itemQuantity;
+        }
+
+        function resetValues() {
+            // 수정한 값 초기화
+            $('#itemQuantity').val('1');
+        }
+    </script>
+
+    <script>
+        function saveToBasket() {
+            // 필요한 데이터 가져오기
+            var loginId = $('#loginId').text().trim(); // 로그인 아이디 가져오기
+            var itemName = $('#itemName').text().trim(); // 아이템 이름 가져오기
+
+            // AJAX 요청 설정
+            $.ajax({
+                url: '/basket/v1', // 장바구니 저장 엔드포인트
+                type: 'POST',
+                data: {
+                    'memberLoginId': loginId,
+                    'ItemName': itemName
+                },
+                beforeSend: function(xhr) {
+                    // CSRF 토큰 설정
+                    xhr.setRequestHeader(csrfHeader, csrfToken);
+                },
+                success: function(data) {
+                    // 장바구니 저장 성공 시 경고창 표시
+                    if (data === true) {
+                        alert('장바구니에 등록되었습니다.');
+                    } else if (data===false) {
+                        // 이미 담겨있는 경우
+                        alert('로그인을 먼저 해주세요');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    // 에러 처리
+                    console.error(error);
+                    alert('장바구니 저장에 실패했습니다.');
+                }
+            });
+        }
+    </script>
+</head>
+<th:block layout:fragment="css">
+    <style>
+        .container-with-padding {
+            padding: 50px 300px; /* 좌우 여백 크기를 조절하세요 */
+        }
+    </style>
+</th:block>
+
+<div layout:fragment="content">
+    <header class="py-5 bg-dark">
+        <div class="container">
+            <p class="m-0 text-center text-white">상품 상세 페이지 </p> </div>
+    </header>
+    <nav class="navbar bg-body-tertiary">
+    </nav>
+
+
+
+    <form role="form" th:object="${book}">
+            <div class="mainContainer container-with-padding">
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="product-image border btn-dark" style="">
+                            <img class="img-thumbnail center" th:src="@{*{files.get(0).imgUrl}}" alt="no image" />
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="header">
+                                <span class="badge" style="display: none">
+                                    <span class="badge"></span>
+                                </span>
+                            <a href="" class="shop" brandname="책방"></a>
+
+                            <h2 class="product-name" th:text="*{itemName}">상품 이름</h2>
+                            <a th:href="@{/item/update/{id}(id=${book.id})}">상품 수정하기</a>
+                            <hr class="my-4" style="color: #1a1e21; border-color: #1a1e21">
+
+                            <p class="product-price" th:text="${#numbers.formatInteger(book.price, 0, 'COMMA')} + '원'"style="color: #dc3545;font-weight: bold">가격: ₩100,000</p>
+                                <div class="pointer-event"> 적립금
+                                    <span th:text="*{price/10}">
+                                    </span>
+                                    <button class="btn btn-outline-info" style="font-size: 0.75rem; padding: 0.2rem 0.5rem;"type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
+                                        Info
+                                    </button>
+                                    </p>
+                                    <div class="collapse" id="collapseExample" style="">
+                                        <div class="card card-body">
+                                            <span class="card-header" style="font-size: 15px">기본 적립</span>
+                                            <a th:text="'10% 적립 ' + *{(price/10)}+'p'"style="font-size: 10px"></a>
+                                            <span class="card-header"style="font-size: 15px">추가 적립</span>
+                                            <a style="font-size: 13px">5만원이상 구매시</a>
+                                            <a th:text="'20% 적립 ' +*{(price/10)*2}+'p'"style="font-size: 10px"></a>
+                                        </div>
+                                    </div>
+                                </div>
+                            <hr class="my-4" style="color: #1a1e21; border-color: #1a1e21">
+
+                            <p class="page-item">
+                                배송안내
+                            </p>
+                            <p class="page-item">
+                                <a th:text="'배송비: '+*{deliveryPrice}"></a>
+                            </p>
+
+                            <a th:text="'(예상배송일: ' + ${T(java.time.LocalDate).now().plusDays(2).format(T(java.time.format.DateTimeFormatter).ofPattern('MM/dd일)'))}"></a>
+
+                            <hr class="my-4" style="color: #1a1e21; border-color: #1a1e21">
+<!--                            <p class="product-description" th:text="*{detailInfo}">상품 설명 Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>-->
+
+                            <div class="quantity">
+                                <input type="number" id="itemQuantity" value="1" min="1">.
+                                <input type="hidden" id="bookId" th:value="*{id}">
+                            </div>
+                            <button type="button" onclick="saveToBasket()">장바구니에 담기
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bookmark-heart" viewBox="0 0 16 16">
+                                    <path fill-rule="evenodd" d="M8 4.41c1.387-1.425 4.854 1.07 0 4.277C3.146 5.48 6.613 2.986 8 4.412z"/>
+                                    <path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2zm2-1a1 1 0 0 0-1 1v12.566l4.723-2.482a.5.5 0 0 1 .554 0L13 14.566V2a1 1 0 0 0-1-1H4z"/>
+                                </svg>
+                            </button>
+                            <button class="border-dark">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-basket3" viewBox="0 0 16 16">
+                                    <path d="M5.757 1.071a.5.5 0 0 1 .172.686L3.383 6h9.234L10.07 1.757a.5.5 0 1 1 .858-.514L13.783 6H15.5a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5H.5a.5.5 0 0 1-.5-.5v-1A.5.5 0 0 1 .5 6h1.717L5.07 1.243a.5.5 0 0 1 .686-.172zM3.394 15l-1.48-6h-.97l1.525 6.426a.75.75 0 0 0 .729.574h9.606a.75.75 0 0 0 .73-.574L15.056 9h-.972l-1.479 6h-9.21z"/>
+                                </svg>
+                            </button>
+                            <button  type="button" class="add-to-cart" onclick="goToPurchasePage()">
+                                구매
+                            </button>
+                            <div sec:authorize="isAuthenticated()">
+                                <div type="hidden">
+                                    <div id="loginId"  th:text="${userName.loginId}" style="display: none;"/>
+                                    <div id="itemName" th:text="${book.itemName}" style="display: none;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    </form>
+
+
+    <hr class="my-4" style="color: #1a1e21; border-color: #1a1e21">
+
+    <nav id="navbar" class="navbar container text-center">
+        <ul class="nav col justify-content-center" style="display: flex;">
+            <li class="nav-item flex-fill border  border-dark">
+                <a class="nav-link" href="#scrollspyHeading1" style="color: #0D0D0D">상품상세</a>
+            </li>
+            <li class="nav-item flex-fill border border-dark">
+                <a class="nav-link" href="#scrollspyHeading2" style="color: #0D0D0D">상품평</a>
+            </li>
+            <li class="nav-item flex-fill border border-dark">
+                <a class="nav-link" href="#scrollspyHeading3" style="color: #0D0D0D">상품문의</a>
+            </li>
+            <li class="nav-item flex-fill border border-dark">
+                <a class="nav-link" href="#scrollspyHeading4" style="color: #0D0D0D">배송/교환/반품 안내</a>
+            </li>
+        </ul>
+    </nav>
+
+    <hr class="my-4" style="color: #1a1e21; border-color: #1a1e21">
+
+    <div style="display: flex; justify-content: center;">
+        <img th:src="@{${book.files.get(1).imgUrl}}" alt="no image">
+    </div>
+
+    <hr class="my-4" style="color: #1a1e21; border-color: #1a1e21">
+    <div data-bs-spy="scroll" data-bs-target="#navbar-example2" data-bs-root-margin="0px 0px -40%" data-bs-smooth-scroll="true" class="scrollspy-example bg-body-tertiary p-3 rounded-2" tabindex="0">
+        <h4 id="scrollspyHeading1">상품 상세</h4>
+        <p th:text="${book.detailInfo}"></p>
+        <hr class="my-4" style="color: #1a1e21; border-color: #1a1e21">
+        <h4 id="scrollspyHeading2">상품평</h4>
+        <p></p>
+        <hr class="my-4" style="color: #1a1e21; border-color: #1a1e21">
+        <h4 id="scrollspyHeading3">상품문의</h4>
+        <p>...</p>
+        <hr class="my-4" style="color: #1a1e21; border-color: #1a1e21">
+        <h4 id="scrollspyHeading4">배송/교환/반품 안내</h4>
+        <p>...</p>
+    </div>
+</div>
+
+</html>

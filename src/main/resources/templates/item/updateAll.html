@@ -1,0 +1,108 @@
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{/fragements/layout/headerandfooter}">
+<<head></head>
+
+<th:block layout:fragment="script">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script th:inline="javascript">
+        var csrfToken = /*[[${_csrf.token}]]*/ '';
+        var csrfHeader = /*[[${_csrf.headerName}]]*/ '';
+
+        function deleteItem() {
+            var itemId = $('#item-id').val();
+            console.log(itemId);
+
+            var confirmation = confirm("정말로 삭제하시겠습니까?");
+
+            if (confirmation) {
+                const requestData = {
+                    "itemId": itemId
+                };
+
+                $.ajax({
+                    url: "/item/delete",
+                    type: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify(requestData),
+                    beforeSend: function (xhr) {
+                        xhr.setRequestHeader(csrfHeader, csrfToken);
+                    },
+                    success: function (response) {
+                        alert("삭제성공");
+                        location.reload();
+                    },
+                    error: function (xhr, status, error) {
+                        if (xhr.status === 500) {
+                            alert("삭제 도중 오류 발생");
+                        }
+                    }
+                });
+            } else {
+                // 취소를 선택한 경우
+                console.log("삭제가 취소되었습니다.");
+            }
+        }
+    </script>
+</th:block>
+
+<th:block layout:fragment="css">
+    <style>
+        .container-with-padding {
+            padding: 50px 300px; /* 좌우 여백 크기를 조절하세요 */
+        }
+    </style>
+</th:block>
+
+<div layout:fragment="content">
+    <header class="py-5 bg-dark">
+        <div class="container">
+            <p class="m-0 text-center text-white">전체 상품 수정 </p> </div>
+    </header>
+    <nav class="navbar bg-body-tertiary">
+    </nav>
+
+        <hr>
+
+        <section>
+            <table class="table  table-bordered">
+                <thead>
+                <tr>
+                    <th scope="col">상품 Id</th>
+                    <th scope="col">상품정보</th>
+                    <th scope="col">옵션</th>
+                    <th scope="col">상품금액</th>
+                    <th scope="col">배송비</th>
+                    <th scope="col"></th>
+                </tr>
+                </thead>
+                <tbody th:each="item : ${items}">
+                    <tr>
+                        <td th:text="${item.getId()}">
+                        </td>
+                        <td>
+                            <a th:href="@{/item/{id}/info(id=${item.id})}"> <!-- 이 부분이 수정된 부분입니다 -->
+                                <span th:text="${item.itemName}"></span>
+                            </a></td>
+                        <td th:text="${item.price}">Otto</td>
+                        <td th:text="${item.price}">@</td>
+                        <td th:text="${item.deliveryPrice}"></td>
+                        <td style="display: flex; gap: 10px;justify-content: center;">
+                            <button onclick="deleteItem()">삭제하기</button>
+                            <input type="hidden"id="item-id"  th:value="${item.id}">
+                            <form th:action="@{/item/update/{id}(id=${item.id})}">
+                                <button type="submit">수정하기</button>
+                            </form>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+    <button type="button" th:onclick="|location.href='@{/addItem}'|">상품 등록하기</button>
+
+
+</div>
+
+</html>

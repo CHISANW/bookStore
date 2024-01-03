@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+
+  <script th:inline="javascript">
+    var csrfToken = /*[[${_csrf.token}]]*/ '';
+    var csrfHeader = /*[[${_csrf.headerName}]]*/ '';
+
+    function sample6_execDaumPostcode() {
+      new daum.Postcode({
+        oncomplete: function(data) {
+          var addr = ''; // 주소 변수
+          var extraAddr = ''; // 참고항목 변수
+
+          if (data.userSelectedType === 'R') {
+            addr = data.roadAddress;
+          } else {
+            addr = data.jibunAddress;
+          }
+          if(data.userSelectedType === 'R'){
+            if(data.bname !== '' && /[동|로|가]$/g.test(data.bname)){
+              extraAddr += data.bname;
+            }
+            if(data.buildingName !== '' && data.apartment === 'Y'){
+              extraAddr += (extraAddr !== '' ? ', ' + data.buildingName : data.buildingName);
+            }
+            if(extraAddr !== ''){
+              extraAddr = ' (' + extraAddr + ')';
+            }
+            document.getElementById("subAddr").value = extraAddr;
+          } else {
+            document.getElementById("subAddr").value = '';
+          }
+
+          document.getElementById('zipcode').value = data.zonecode;
+          document.getElementById("address").value = addr;
+          document.getElementById("detailAddr").focus();
+        }
+      }).open();
+    }
+
+  </script>
+
+  <script>
+    function checkDuplicateId() {
+      var loginid = $('#loginId').val();
+
+
+      if (loginid.trim() !== "") {
+        $.ajax({
+          url: "/checkDuplicateId",
+          type: "POST",
+          data: {"loginId": loginid},
+          beforeSend: function (xhr){
+            xhr.setRequestHeader(csrfHeader,csrfToken)
+          },
+          success: function (data) {
+            if (data == 0) {
+              console.log("아이디 사용가능")
+              $('#loginIdError').html("<span> 아이디 사용 가능</span>").css({
+                "color": "#0a53be",
+                "font-weight": "bold",
+                "font-size": "13px"
+              });
+            } else {
+              console.log("아이디 중복")
+              $('#loginIdError').html("<span> 아이디 중복</span>").css({
+                "color": "#FA3E3E",
+                "font-weight": "bold",
+                "font-size": "13px"
+              });
+              ;
+            }
+
+          }
+        });
+      } else {
+        $('#loginIdError').html(""); // 빈 아이디 입력 시 메시지 삭제
+      }
+    };
+  </script>
+  <script>
+    function  checkMatchPwd(){
+      var password1 = $('#password').val();
+      var password2 = $('#passwordRe').val();
+
+        $.ajax({
+          url: "/checkDuplicatePwd",
+          type: "POST",
+          data: {
+            "password1" : password1,
+            "password2" : password2
+          },
+          beforeSend : function (xhr){
+           xhr.setRequestHeader(csrfHeader,csrfToken);
+          },
+          success : function (data){
+            if (data == 1) {
+              $('#passwordError').html("<span>비밀번호 일치</span>").css({
+                "color": "#0a53be",
+                "font-weight": "bold",
+                "font-size": "13px"
+              });
+            }
+            else if(password2 ===""){
+              $('#passwordError').html(""); // 에러가 아닐 경우 메시지 삭제
+            }
+
+            else if (data == 0) {
+              $('#passwordError').html("<span>비밀번호 불일치</span>").css({
+                "color": "#FA3E3E",
+                "font-weight": "bold",
+                "font-size": "13px"
+              });
+            }
+          }
+        })
+      }
+  </script>
+
+  <script>
+    function inputEmail(){
+      var writeEmail = $('#email').val();
+      if(writeEmail ==="" || writeEmail !==""){
+        $('#emailError').html("");
+      }
+    }
+  </script>
+  <script>
+    function checkUsername(){
+      var checkName = $('#username').val();
+      if(checkName !=="" || checkName===""){
+        $('#userError').html("");
+      }
+    }
+  </script>
+
+  <script>
+    function checkPwd(){
+      var password = $('#password').val();
+      if(password !=="" || password===""){
+        $('#passwordError1').html("");
+      }
+    }
+  </script>
+
+  <script>
+    /**
+     * 생년월일 범위 검사 스크립트
+     */
+    function checkYearMax() {
+      var yearInput = document.getElementById("yearInput");
+      var maxYear = parseInt(yearInput.getAttribute("max"));
+      var minYear = parseInt(yearInput.getAttribute("min"));
+      var currentYear = parseInt(yearInput.value);
+
+      if (currentYear > maxYear) {
+        yearInput.value = maxYear;
+      }
+      else if(currentYear< minYear){
+        yearInput.value =minYear;
+      }
+    }
+
+    function checkMonth(){
+      var monthInput = document.getElementById("monthInput");
+      var maxMonth =parseInt(monthInput.getAttribute("max"));
+      var minMonth =parseInt(monthInput.getAttribute("min"));
+      var currentDay = parseInt(monthInput.value);
+
+      if (currentDay>maxMonth){
+        monthInput.value =maxMonth;
+      }
+      else if(currentDay <minMonth){
+        monthInput.value =minMonth;
+      }
+    }
+
+    function checkDay(){
+      var dayInput = document.getElementById("dayInput");
+      var maxDay = parseInt(dayInput.getAttribute("max"));
+      var minDay = parseInt(dayInput.getAttribute("min"));
+      var currentDay = parseInt(dayInput.value);
+
+      if(currentDay > maxDay){
+        dayInput.value = maxDay;
+      }
+      else if (currentDay < minDay){
+        dayInput.value =minDay;
+      }
+    }
+  </script>
+
+  <style>
+    .invalid-feedback{
+      color: #FA3E3E;
+      font-weight: bold;
+      font-size: 15px;
+    }
+    .field-error{
+      color: #dc3545;
+      font-weight: bold;
+      font-size: small;
+    }
+  </style>
+</head>
+<body>
+<a href="/">
+  <h1>BLOG</h1>
+</a>
+<form th:action="@{/join}" th:object="${member}" method="post">
+  <div>
+    <label th:for="usernmae">이름</label>
+    <input type="text" th:field="*{username}"placeholder="이름을 입력하세요" oninput="checkUsername()" autofocus>
+    <div th:class="invalid-feedback" id="userError">
+      <small class="text-danger" th:errors="*{username}"/>
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="loginId" id="loginIdTxt"> 아이디</label>
+    <input type="text" id="loginId" name="loginId" class="form-control"placeholder="아이디" onInput="checkDuplicateId()"
+           th:class="${#fields.hasErrors('loginId')} ? 'form-control field-error' : 'form-group'"
+           th:value="*{loginId}">
+    <div class="invalid-feedback" id="loginIdError">
+      <small th:class="text-danger" th:errors="*{loginId}"></small>
+    </div>
+  </div>
+  <div>
+    <label th:for="password">비밀번호</label>
+    <input type="password" th:field="*{password}" placeholder="비밃번호를 입력하세여" oninput="checkPwd()">
+    <div th:class="invalid-feedback" id="passwordError1">
+      <small th:class="text-danger" th:errors="*{password}"/>
+    </div>
+  </div>
+
+  <div>
+    <label th:for="passwordRe">비밀번호 재입력</label>
+    <input type="password" th:field="*{passwordRe}" placeholder="비밀번호를 재입력해주세요" oninput="checkMatchPwd()">
+    <div class="invalid-feedback" id="passwordError">
+      <small th:class="text-danger" th:errors="*{passwordRe}"></small>
+    </div>
+  </div>
+
+  <div>
+    <input type="number" id="yearInput" th:field="*{year}"placeholder="2022" style="width: 50px" min="1900" max="2020" onchange="checkYearMax()"/>
+    <label th:for="year">년도</label>
+    <input type="number" id="monthInput" th:field="*{month}"placeholder="1" style="width: 50px"min="1" max="12" onchange="checkMonth()"/>
+    <label th:for="month">월</label>
+    <input type="number" id="dayInput" th:field="*{day}"placeholder="1" style="width: 50px" min="1" max="31" onchange="checkDay()"/>
+    <label th:for="day">일</label>
+  </div>
+
+  <div>
+    <label th:for="phoneNumber">핸드폰번호</label>
+    <input type="text" th:field="*{phoneNumber}">
+    <div class="invalid-feedback">
+      <small th:class="text-danger" th:errors="*{phoneNumber}"></small>
+    </div>
+  </div>
+
+  <div>
+    <label th:for="email">이메일</label>
+    <input type="email" th:field="*{email}" placeholder="이메일을 입력하세요" oninput="inputEmail()">
+    <div class="invalid-feedback" id="emailError">
+      <small th:class="text-danger" th:errors="*{email}"></small>
+    </div>
+  </div>
+  <div class="from-group">
+    <label th:for="address">주소</label>
+    <input type="text" th:field="*{zipcode}" placeholder="우편번호">
+    <input type="button" onClick="sample6_execDaumPostcode()" value="우편번호 찾기"/>
+    <div class="invalid-feedback" th:if="${#fields.hasErrors('address')}">
+      <small th:class="text-danger" th:errors="*{address}"></small>
+    </div>
+    <input type="text" th:field="*{address}" placeholder="주소"><br>
+    <input type="text" th:field="*{detailAddr}" placeholder="상세주소">
+    <input type="text" th:field="*{subAddr}" placeholder="참고항목">
+  </div>
+
+
+  <button type="submit">회원가입</button>
+</form>
+
+</body>
+</html>

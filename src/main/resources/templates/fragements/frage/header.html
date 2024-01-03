@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<style>
+  .button-container {
+    display: flex;
+    justify-content: center;
+  }
+
+  .btn {
+    text-align: center;
+    padding: 10px;
+    margin: 5px;
+    flex: 1; /* 그룹 내에서 버튼이 동일한 너비를 가지도록 설정합니다. */
+  }
+
+  .btn-login {
+    font-size: 20px;
+    background-color: #0D0D0D;
+    color: white;
+  }
+
+  .btn-small {
+    font-size: 14px;
+    background-color: #f0f0f0;
+  }
+</style>
+<div th:fragment="header">
+  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container px-4 px-lg-5">
+      <a class="navbar-brand"  href="/">책방</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
+          <li class="nav-item">
+            <a class="nav-link active" aria-current="page" href="#!" th:href="@{/}">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#!">About</a>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Shop</a>
+            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+              <li><a class="dropdown-item" href="/" th:href="@{/item/itemAll}">전체 상품</a></li>
+              <li><hr class="dropdown-divider" /></li>
+              <li><a class="dropdown-item" href="#!">인기 상품</a></li>
+              <li><a class="dropdown-item" href="#!">새로운 상품</a></li>
+            </ul>
+          </li>
+        </ul>
+
+        <div sec:authorize="!isAuthenticated()">
+          <div class="button-container">
+            <a href="/login" class="btn-login" style="color: #0D0D0D;">
+              <i class="btn-login">
+                <span class="blind">|</span>
+              </i>
+              로그인
+            </a>
+            <a href="/join" class="nav-item" style=" color: #0D0D0D; margin-right: 5px;">회원가입</a>
+          </div>
+        </div>
+
+        <div class="nav-item dropdown"sec:authorize="isAuthenticated()">
+<!--          <p th:text="${#authentication.authorities}"></p>-->
+          <a class="nav-link dropdown-toggle" th:text="${userName.username}" role="button" data-bs-toggle="dropdown" aria-expanded="false">로그인 사용자이름</a>
+          <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+<!--            <li><a class="dropdown-item" th:text="${grade}">권한</a> </li>-->
+            <li a class="dropdown-item" th:text="${userName.grade}"></li>
+            <li><a class="dropdown-item" >내정보</a><li>
+            <li><hr class="dropdown-divider" /> </li>
+            <li><a class="dropdown-item" href="#" th:href="@{/addItem}">상품등록</a> </li>
+            <li><a class="dropdown-item" href="#" th:href="@{/item/updateAll}">상풍수정</a> </li>
+            <li><a class="dropdown-item" href="#" th:href="@{/orders/list}">주문목록</a> </li>
+            <li>
+              <form th:action="@{/logout}" method="post">
+                <button type="submit" class="dropdown-item">로그아웃</button>
+              </form>
+            </li>
+          </ul>
+        </div>
+
+
+        <form class="d-flex" action="/item/basket">
+          <button class="btn btn-outline-dark" type="submit">
+            <i class="bi-cart-fill me-1"></i>
+            Cart
+            <span class="badge bg-dark text-white ms-1 rounded-pill">0</span>
+          </button>
+        </form>
+      </div>
+    </div>
+  </nav>
+  <!-- Header-->
+  <header class="bg-dark py-5">
+    <div class="container px-4 px-lg-5 my-5">
+      <div class="text-center text-white">
+        <h1 class="display-4 fw-bolder">BookStore</h1>
+        <p class="lead fw-normal text-white-50 mb-0">With this shop hompeage template</p>
+      </div>
+    </div>
+  </header>
+</div>
+</html>

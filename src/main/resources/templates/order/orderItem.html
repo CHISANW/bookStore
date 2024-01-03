@@ -1,0 +1,347 @@
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{/fragements/layout/headerandfooter}">
+
+<head>
+    <!-- jQuery -->
+    <script type="text/javascript" src="https://code.jquery.com/jquery-1.12.4.min.js" ></script>
+    <!-- iamport.payment.js -->
+    <script type="text/javascript" src="https://cdn.iamport.kr/js/iamport.payment-1.2.0.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script th:inline="javascript">
+        var csrfToken = /*[[${_csrf.token}]]*/ '';
+        var csrfHeader = /*[[${_csrf.headerName}]]*/ '';
+
+
+
+        function changePhone(){
+            var phone = $('#phone').val().trim(); // val()로 값을 가져옵니다.
+            var errorContainer = document.querySelector(".error-container"); // 오류를 표시할 컨테이너
+            var memberId = $('#memberId').val().trim(); // val()로 값을 가져옵니다.
+            $.ajax({
+                url : "/changePhone",
+                type :"POST",
+                data : {
+                    'memberId' : memberId,
+                    'phoneNumber' : phone
+                },
+                beforeSend: function (xhr){
+                    xhr.setRequestHeader(csrfHeader,csrfToken);
+                    errorContainer.innerHTML = "";
+                },
+                success: function (response){
+                    alert("전화번호 수정 성공")
+                },
+                error: function (xhr, status, error) {
+                    if (xhr.status === 400) {
+                        var errorMessage = xhr.responseText; // 서버에서 전달된 오류 메시지
+                        var errorElement = document.createElement("p");
+                        errorElement.style.color = "red";
+                        errorElement.textContent = errorMessage; // 에러 메시지 설정
+
+                        errorContainer.innerHTML = ""; // 기존 메시지 제거
+                        errorContainer.appendChild(errorElement); // 새로운 오류 메시지 추가
+                    }
+                }
+            });
+        }
+
+        function saveorder(){
+            var selectAddress = document.getElementById('addressOptions').value;
+            var quantity = $('#quantity').val();
+            var memberId = $('#memberId').val().trim();
+            var itemId = $('#itemId').val().trim();
+           $.ajax({
+               url: "/orders",
+               type: "POST",
+               data: {
+                   "itemId":itemId,
+                   "memberId":memberId,
+                   "quantity" : quantity,
+                   "deliveryRequest" : selectAddress
+               },
+               beforeSend: function (xhr){
+                   xhr.setRequestHeader(csrfHeader,csrfToken);
+               },
+               success: function (response){
+                   alert("주문 성공")
+                   window.location.href="/orders/list";
+               },
+               error: function (xhr, status, error) {
+                   if (xhr.status === 500) {
+                     alert("주문 도중 오류 발생")
+                   }
+               }
+           });
+        }
+
+
+    </script>
+<!--    <script>-->
+<!--        function openAddressPopup() {-->
+<!--            // 팝업 창의 크기와 위치를 설정합니다.-->
+<!--            const popupWidth = 500;-->
+<!--            const popupHeight = 300;-->
+<!--            const left = window.screenX + (window.innerWidth - popupWidth) / 2;-->
+<!--            const top = window.screenY + (window.innerHeight - popupHeight) / 2;-->
+
+<!--            // 새로운 팝업 창을 엽니다.-->
+<!--            const popupWindow = window.open('', '_blank', `width=${popupWidth},height=${popupHeight},left=${left},top=${top}`);-->
+
+<!--            // 팝업 창에 주소 선택을 위한 HTML을 추가합니다.-->
+<!--            popupWindow.document.write(`-->
+<!--        <select id="addressOptions">-->
+<!--            <option value="집앞 경비실">집앞 경비실</option>-->
+<!--            <option value="집앞 등">집앞 등</option>-->
+<!--            &lt;!&ndash; 추가적인 옵션을 여기에 계속해서 추가 &ndash;&gt;-->
+<!--        </select>-->
+<!--        <button onclick="saveAndClose()">저장</button>-->
+<!--    `);-->
+
+<!--            // 팝업 창이 닫히는 시점에 선택한 값을 부모 창으로 전달하거나 처리할 수 있습니다.-->
+<!--            window.saveAndClose = function() {-->
+<!--                const selectedAddress = popupWindow.document.getElementById('addressOptions').value;-->
+<!--                // 선택된 주소를 부모 창으로 전달하거나 원하는 작업을 수행합니다.-->
+<!--                // 예를 들어, 부모 창의 필드에 선택된 값을 설정할 수 있습니다.-->
+<!--                alert(`선택된 주소: ${selectedAddress}`);-->
+<!--                popupWindow.close();-->
+<!--            }-->
+<!--        }-->
+<!--    </script>-->
+</head>
+<th:block layout:fragment="css">
+    <style>
+        .container-with-padding {
+            padding: 50px 300px; /* 좌우 여백 크기를 조절하세요 */
+        }
+    </style>
+</th:block>
+
+<div layout:fragment="content">
+
+    <header class="py-5 bg-dark">
+        <div class="container">
+            <p class="m-0 text-center text-white">결제 페이지 </p> </div>
+    </header>
+    <fieldset>
+        <legend>주문 내용 확인</legend>
+
+
+    <!-- 주문/배송 정보 -->
+    <div class="container mt-5">
+        <!-- 받는사람정보 -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h2 class="card-title">구매자정보</h2>
+
+                <input type="hidden" id="memberId" th:value="${userName.id}"/>
+
+                <!-- 주소 및 연락처 정보 테이블 -->
+                <table class="table mt-3">
+                    <tbody>
+                    <tr>
+                        <th scope="row">이름</th>
+                        <td>
+                            <div th:text="${userName.username}">김민우</div>
+                        </td>
+                    </tr>
+                    <tr/>
+                    <tr>
+                        <th scope="row">이메일</th>
+                        <td>
+                            <div th:text="${userName.email}">example@example.com</div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">휴대폰 번호</th>
+                        <td class="customer__col customer__col--2">
+                            <div data-component="customer-phone">
+                                <div class="customer-phone__root">
+                                    <div data-component="customer-phone-form-tel">
+                                        <form data-customer-phone--form-tel="">
+                                            <div>
+                                                <input type="tel" id="phone" class="form-control" data-customer-phone--input-tel=""
+                                                       th:value="${#strings.substring(userName.phoneNumber, 0, 3)}+'-'+${#strings.substring(userName.phoneNumber, 3, 7)}+'-'+${#strings.substring(userName.phoneNumber, 7)}">
+                                                <button type="button" onclick="changePhone()" data-customer-phone--submit-tel="" class="btn btn-primary mt-2">
+                                                    수정
+                                                </button>
+                                                <span class="customer-phone__tel-desc" style="font-size: small; color: #4d5154">쿠폰/티켓정보는 구매한 분의 번호로 전송됩니다.</span>
+                                                <div class="error-container"></div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                    <div data-component="customer-phone-noties">
+                                        <p class="customer-phone__noti ">
+                                            * 인증 번호를 못 받았다면, 1577-7011 번호 차단 및 스팸 설정을 확인해 주세요.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 받는 사람 정보 -->
+    <div class="container mt-4">
+        <!-- 받는사람정보 -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h2 class="card-title">받는사람정보</h2>
+                <button class="btn btn-primary" type="button">
+                    배송지변경
+                </button>
+                <!-- 주소 및 연락처 정보 테이블 -->
+                <table class="table mt-3">
+                    <tbody>
+                    <tr>
+                        <th scope="row">이름</th>
+                        <td>
+                            <span>김민우</span>
+                            <span class="badge bg-primary">기본배송지</span>
+                            <span class="badge bg-success">로켓와우 가능</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">배송주소</th>
+                        <td>
+                            <span th:text="${userName.addresses.get(0).address }+' '+${userName.addresses.get(0).detailAddr}">경기도 이천시 안흥동 469 이천안흥 주공아파트 및 상가 107동104호</span>
+                            <div class="alert alert-danger mt-2" role="alert">
+                                배송이 불가능한 주소입니다. 다른 배송지를 입력하거나 선택해주세요.
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">연락처</th>
+                        <td th:text="${#strings.substring(userName.phoneNumber, 0, 3)}+'-'+${#strings.substring(userName.phoneNumber, 3, 7)}+'-'+${#strings.substring(userName.phoneNumber, 7)}">010-8342-7747</td>
+                    </tr>
+                    </tbody>
+                </table>
+
+                <!-- 배송 요청사항 -->
+                <div data-delivery-address__related-table="">
+                    <div data-component="deliveryRequestMessage">
+                        <div class="delivery-request-message__container" data-delivery-request-message__container="">
+                            <table class="delivery-request-message">
+                                <tbody>
+                                <tr>
+                                    <th class="delivery-request-message__th">
+                                        <span>배송 요청사항</span>
+                                    </th>
+                                    <td class="delivery-request-message__td delivery-request-message__td--name">
+<!--                                        <button class="delivery-request-message__popup-list-button" type="button"  onclick="openAddressPopup()">-->
+<!--                                            변경-->
+<!--                                        </button>-->
+<!--                                        <div id="addressPopup" style="display: none;">-->
+                                            <select th:field="${delivery.deliveryRequest}" id="addressOptions">
+                                                <!-- 여기에 주소 옵션을 동적으로 추가할 수 있습니다. -->
+                                                <option value="집앞 경비실">집앞 경비실</option>
+                                                <option value="집앞 등">집앞 등</option>
+                                                <!-- 추가적인 옵션을 여기에 계속해서 추가 -->
+                                            </select>
+                                        <div class="delivery-request-message__covid-nudge-container"></div>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 상품 정보 -->
+    <div class="container mt-5">
+        <div class="card mb-4">
+            <div class="card-body">
+                <h2 class="card-title">주문 상세 정보</h2>
+                <table class="table mt-3">
+                    <tbody>
+                    <tr>
+                        <th scope="row">배송 상태</th>
+                        <td>
+                            <div class="bundle-info__expected-delivery-date-box">
+                                <span class="bundle-info__expected-delivery-info">
+                                    <span class="bundle-info__expected-delivery-date">
+                                        <strong class="bundle-info__expected-delivery-date__dropship">토요일 12/30</strong>
+                                        <span class="bundle-info__expected-delivery-date-suffix__dropship">도착 예정</span>
+                                    </span>
+                                </span>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row" style="width: 68.63px;">상품 정보</th>
+                        <td>
+                            <div class="bundle-info__item-list ">
+                                <div class="bundle-info__vendor-item-box ">
+                                    <div class="bundle-info__vendor-item">
+                                            <span class="bundle-info__vendor-item__offer-condition" >
+                                                <div th:text="'상품명: '+${item.itemName}"></div>
+                                            </span>
+                                    </div>
+                                    <div class="bundle-info__item-description bundle-info__vendor-item-description--last">
+                                        <ul>
+                                            <li th:text="'상품가격: '+ ${#numbers.formatInteger(item.price , 0, 'COMMA')} +'원'"/>
+                                            <li th:text="'수량: '+${quantity}+'개'"/>
+                                            <li th:text="'배송비: '+${#numbers.formatInteger(item.deliveryPrice,0,'COMMA')}+'원'"/>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 결제 정보 -->
+
+    <div>
+        <div class="container mt-5">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h2 class="card-title">결제 정보</h2>
+                    <table class="table mt-3">
+                        <tbody>
+                        <tr>
+                            <th scope="row">총 가격</th>
+                            <td>
+                                <div>
+                                <span>
+                                    <span class="bundle-info__expected-delivery-date">
+                                        <span th:text="${#numbers.formatInteger(quantity*item.price+item.deliveryPrice,'0','COMMA')+'원'}" style="color: #dc3545; font: bolder" >도착 예정</span>
+                                    </span>
+                                </span>
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+        <!-- 결제 버튼 -->
+        <button onclick="saveorder()">결제하기</button>
+        <input type="hidden" id="price" th:value="${item.price}" />
+        <input type="hidden" id="itemId" th:value="${item.id}">
+        <input type="hidden" id="quantity" th:value="${quantity}">
+
+    </fieldset>
+</div>
+
+</html>

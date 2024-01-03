@@ -1,0 +1,199 @@
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{/fragements/layout/headerandfooter}">
+
+<head>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script th:inline="javascript">
+        var csrfToken = /*[[${_csrf.token}]]*/ '';
+        var csrfHeader = /*[[${_csrf.headerName}]]*/ '';
+
+        function deleteItems() {
+
+            var selectedItems = document.querySelectorAll('input[type="checkbox"]:checked');
+            var selectedValues = [];
+            selectedItems.forEach(function (item) {
+                selectedValues.push(item.value);
+            });
+
+            if (selectedValues.length > 0) {
+
+                var basketItems = {
+                    "itemNames" : selectedValues
+                };
+
+                $.ajax({
+                    url : "/DeleteBasketItem",
+                    type :"post",
+                    contentType : "application/json",
+                    data: JSON.stringify(basketItems),
+                    beforeSend : function (xhr){
+                        xhr.setRequestHeader(csrfHeader,csrfToken);
+                    },
+                    success: function (response){
+                        alert("삭제 성공");
+                        location.reload();
+                    },
+                    error: function (xhr,status,error){
+                        if(xhr === 500){
+                            alert("삭제도중 오류 발생");
+                        }
+                    }
+
+                });
+            } else {
+                alert('삭제하려는 상품을 선택해주세요');
+            }
+        }
+
+    </script>
+    <script>
+        function buyItems(){
+            var selectedItems = document.querySelectorAll('input[type="checkbox"]:checked');
+            var selectedValues = [];
+
+            selectedItems.forEach(function(item) {
+                selectedValues.push(item.value); // 선택된 checkbox의 값을 배열에 추가합니다.
+            });
+
+            if(selectedValues.length>0){
+                window.location.href='/cart/order?itemIds='+selectedValues;
+            }else {
+                alert('주문을 하려면 하나이상 체크해주세요');
+            }
+        }
+    </script>
+    <script>
+        function incrementQuantity(button) {
+            var row = button.parentNode.parentNode;
+            var quantityElement = row.querySelector('span');
+            var currentQuantity = parseInt(quantityElement.textContent);
+            var updatedQuantity = currentQuantity + 1;
+            quantityElement.textContent = updatedQuantity;
+            var itemId = row.querySelector('.item-id').value;
+
+            // Send updated quantity to the backend using Ajax (You'll need to replace this with actual code to update the backend)
+            // Ajax 요청을 사용하여 업데이트된 수량을 백엔드로 전송합니다. (실제 백엔드 업데이트 코드로 교체해야 합니다)
+            $.ajax({
+                url: '/updateQuantity', // Your backend endpoint to update quantity
+                method: 'POST',
+                data: { itemId : itemId, quantity: updatedQuantity },
+                beforeSend :function (xhr){
+                    xhr.setRequestHeader(csrfHeader,csrfToken);
+                },
+                success: function(response) {
+                    // 수량이 업데이트되었을 때, 수량 표시 업데이트
+                    quantityElement.textContent = updatedQuantity;
+
+                    // 상품금액 업데이트
+                    var itemPrice = parseFloat(row.querySelector('.item-price').textContent); // 상품 단가
+                    var totalPriceElement = row.querySelector('.total-price'); // 총 상품금액을 나타내는 요소
+
+                    var totalPrice = itemPrice * updatedQuantity;
+                    totalPriceElement.textContent = totalPrice + '원';
+                },
+                error: function(error) {
+                    // Handle error response
+                }
+            });
+        }
+
+        function decrementQuantity(button) {
+            var row = button.parentNode.parentNode;
+            var quantityElement = row.querySelector('span');
+            var currentQuantity = parseInt(quantityElement.textContent);
+            var updatedQuantity = currentQuantity - 1;
+            if (updatedQuantity < 1) {
+                updatedQuantity = 1; // Ensure quantity doesn't go below 1
+            }
+            quantityElement.textContent = updatedQuantity;
+
+            var itemId = row.querySelector('.item-id').value;
+            $.ajax({
+                url: '/updateQuantity',
+                method: 'POST',
+                data: {  itemId : itemId, quantity: updatedQuantity },
+                success: function(response) {
+                    quantityElement.textContent = updatedQuantity;
+
+                    // 상품금액 업데이트
+                    var itemPrice = parseFloat(row.querySelector('.item-price').textContent); // 상품 단가
+                    var totalPriceElement = row.querySelector('.total-price'); // 총 상품금액을 나타내는 요소
+
+                    var totalPrice = itemPrice * updatedQuantity;
+                    totalPriceElement.textContent = totalPrice + '원';
+                },
+                beforeSend :function (xhr){
+                    xhr.setRequestHeader(csrfHeader,csrfToken);
+                },
+                error: function(error) {
+                    // Handle error response
+                }
+            });
+        }
+    </script>
+</head>
+<th:block layout:fragment="css">
+    <style>
+        .container-with-padding {
+            padding: 50px 300px; /* 좌우 여백 크기를 조절하세요 */
+        }
+    </style>
+</th:block>
+
+<div layout:fragment="content">
+    <header class="py-5 bg-dark">
+        <div class="container">
+            <p class="m-0 text-center text-white">장바구니 페이지 </p> </div>
+    </header>
+    <nav class="navbar bg-body-tertiary">
+    </nav>
+
+        <hr>
+        <section>
+            <table class="table  table-bordered">
+                <thead>
+                <tr>
+                    <th scope="col"></th>
+                    <th scope="col">상품정보</th>
+                    <th scope="col">수량</th>
+                    <th scope="col">상품 금액</th>
+                    <th scope="col">총 금액</th>
+                    <th scope="col">배송비</th>
+                </tr>
+                </thead>
+                <tbody th:each="basket : ${baskets}">
+                <tr>
+                    <th scope="row" >
+                        <input type="checkbox"  th:value="${basket.baskItem.id}" aria-label="...">
+                    </th>
+                    <td>
+                        <a th:href="@{/item/{id}/info(id=${basket.baskItem.id})}"> <!-- 이 부분이 수정된 부분입니다 -->
+                            <div th:text="${basket.baskItem.itemName}"></div>
+                        </a>
+                    </td>
+                    <td>
+                        <button onclick="decrementQuantity(this)">-</button>
+                        <span id="quantity" th:text="${basket.quantity}">1</span>
+                        <button onclick="incrementQuantity(this)">+</button>
+                        <input type="hidden" id ="itemId"class="item-id" th:value="${basket.baskItem.id}">
+                    </td>
+                    <td th:text="${basket.baskItem.price}+'원'" class="item-price">10000</td>
+                    <td th:text="${basket.baskItem.price}*${basket.quantity}+'원'" class="total-price">10000원</td>
+                    <td th:text="${basket.baskItem.deliveryPrice}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+
+    <button onclick="buyItems()" > 구매하기</button>
+    <button onclick="deleteItems()"> 선택 삭제하기</button>
+
+
+
+
+</div>
+
+</html>

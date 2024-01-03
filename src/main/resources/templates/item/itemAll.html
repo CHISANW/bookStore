@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{/fragements/layout/headerandfooter}">
+
+<th:block layout:fragment="script">
+
+</th:block>
+<th:block layout:fragment="css">
+
+</th:block>
+
+<th:block layout:fragment="content">
+    <header class="py-5 bg-dark">
+        <div class="container">
+            <p class="m-0 text-center text-white">전체 상품 페이지 </p> </div>
+    </header>
+    <hr>
+    <form class="row g-3 justify-content-center" method="get" th:action="@{/item/itemAll}">
+        <div class="col-6 d-flex">
+            <label for="searchText" class="visually-hidden">Password</label>
+            <input type="text" class="form-control flex-grow-1 me-2" id="searchText" name="searchText" th:value="${param.searchText}">
+            <button type="submit" class="btn btn-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+                    <path d="M11.742 9.672a6.5 6.5 0 1 0-1.07 1.07l3.53 3.53a.75.75 0 0 0 1.06-1.06l-3.52-3.54zM10.5 6A4.5 4.5 0 1 1 6 1.5 4.5 4.5 0 0 1 10.5 6z"/>
+                </svg>
+            </button>
+        </div>
+    </form>
+
+    <section class="py-5">
+        <div class="container px-4 px-lg-5 mt-5">
+            <div> 총 상품수 : <span th:text="${items.totalElements}"/></div>
+            <hr>
+
+            <div class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4 justify-content-center">
+                <!-- 반복문을 사용하여 상품 목록 표시 -->
+                <div th:each="product : ${items}" class="col mb-5">
+                    <div class="card h-100">
+                        <div class="border-bottom  border-dark-subtle">
+                            <img class="card-img-top" th:src="@{${product.files.get(0).imgUrl}}" alt="no image" />
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="text-center">
+                                <!-- Product name -->
+                                <h5 class="fw-bolder" th:text="${product.itemName}">Fancy Product</h5>
+                                <!-- Product price -->
+                                <div th:text="${#numbers.formatInteger(product.price, 0, 'COMMA')} + '원'"></div>
+                                <div th:text="'판매자: ' + ${product.member.username}"></div>
+                                <div th:text="${product.itemSellStatus}"style="color: #dc3545; font-weight: bold"></div>
+                            </div>
+                        </div>
+                        <!-- Product actions -->
+                        <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
+                            <div class="text-center"><a class="btn btn-outline-dark mt-auto" th:href="@{/item/{itemId}/info(itemId=${product.id})}">상세보기</a></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="text-center mt-4">
+            </div>
+        </div>
+    </section>
+    <nav aria-label="Page navigation example">
+        <ul class="pagination justify-content-center">
+            <li class="page-item "th:classappend="${1 == items.pageable.pageNumber + 1} ? 'disabled'">
+                <a class="page-link" href="#" th:href="@{/item/itemAll(page=${items.pageable.pageNumber -1})}" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+            <li class="page-item" th:classappend="${i== items.pageable.pageNumber + 1} ? 'disabled'" th:each="i : ${#numbers.sequence(startPage,endPage)}">
+                <a class="page-link" href="#" th:href="@{/item/itemAll(page=${i}-1)}"th:text="${i}">pageNumber</a></li>
+            <li class="page-item"th:classappend="${items.totalPages == items.pageable.pageNumber + 1} ? 'disabled'">
+                <a class="page-link" href="#" th:href="@{/item/itemAll(page=${items.pageable.pageNumber + 1})}" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</th:block>
+</html>
