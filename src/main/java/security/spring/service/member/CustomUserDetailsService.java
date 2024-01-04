@@ -25,7 +25,6 @@ public class CustomUserDetailsService implements UserDetailsService {
             throw new UsernameNotFoundException(username + " 을 찾을수가 없습니다.");
         }
 
-        log.info("member={}",loginId.getLoginId());
         return User.builder()
                 .username(loginId.getLoginId())
                 .password(loginId.getPassword())

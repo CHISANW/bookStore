@@ -97,8 +97,5 @@ public class BasketService {
         }
     }
 
-//    public void findBasket(Long itemId){
-//        Basket byBaskItemId = basketRepository.findByBaskItemId(itemId);
-//        basketRepository.delete(byBaskItemId);
-//    }
+
 }

@@ -32,6 +32,7 @@ public class ItemDto {
     private int deliveryPrice; // 배송비
 
 
+    @NotBlank(message = "상품 설명을 남겨주세요")
     private String detailInfo;
 
     @Builder.Default

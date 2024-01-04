@@ -25,22 +25,17 @@ public class MemberController {
     @GetMapping("/join")
     public String join(Model model){
         model.addAttribute("member", new MemberDto());
-        log.info("회원가입 get접속");
         return "join";
     }
 
     @PostMapping("/join")
     public String joinPost(@Valid @ModelAttribute("member") MemberDto memberDto, BindingResult result){
-        log.info("회원가입 페이지 접속");
-        
         if (result.hasErrors()){
             return "join";
         }
 
         Member member = memberService.createMember(memberDto);
         eventPublisher.publishEvent(new MemberRegistrationEvent(member));
-
-        log.info("회원가입 성공");
 
         return "redirect:/?validate";
     }

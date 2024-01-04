@@ -79,13 +79,13 @@ public class OrderService {
                     .orderPrice(item.getPrice())
                     .count(item.getBaskets().get(0).getQuantity())
                     .totalPrice((item.getPrice() + item.getDeliveryPrice()) * item.getBaskets().get(0).getQuantity())
-                    .order(order) // Order와 OrderItem 간의 관계 설정
+                    .order(order)
                     .build();
 
             orderItems.add(orderItem);
         }
 
-        order.setOrderItems(orderItems); // Order와 OrderItem의 관계 설정
+        order.setOrderItems(orderItems);
 
         orderRepository.save(order);
     }

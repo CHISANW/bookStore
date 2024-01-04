@@ -63,32 +63,32 @@
     <div class="form-group">
       <label th:for="name">상품명</label>
       <input type="text" th:field="*{itemName}"class="form-control">
-      <!--      <p th:if="${#fields.hasErrors('name')}" th:errors="*{name}" class="fieldError">에러 메시지</p>-->
+            <p th:if="${#fields.hasErrors('itemName')}" th:errors="*{itemName}" class="fieldError">에러 메시지</p>
     </div>
     <div class="form-group">
       <label th:for="price">가격</label>
       <input type="number" th:field="*{price}"class="form-control">
-      <!--      <p th:if="${#fields.hasErrors('price')}" th:errors="*{price}" class="fieldError">에러 메시지</p>-->
+            <p th:if="${#fields.hasErrors('price')}" th:errors="*{price}" class="fieldError">에러 메시지</p>
     </div>
     <div class="form-group">
       <label th:for="stockQuantity">수량</label>
       <input type="number" th:field="*{stockQuantity}"class="form-control">
-      <!--      <p th:if="${#fields.hasErrors('stockQuantity')}" th:errors="*{stockQuantity}" class="fieldError">에러 메시지</p>-->
+            <p th:if="${#fields.hasErrors('stockQuantity')}" th:errors="*{stockQuantity}" class="fieldError">에러 메시지</p>
     </div>
     <div class="form-group">
       <label th:for="author">저자</label>
       <input type="text" th:field="*{author}"class="form-control">
-      <!--      <p th:if="${#fields.hasErrors('author')}" th:errors="*{author}" class="fieldError">에러 메시지</p>-->
+            <p th:if="${#fields.hasErrors('author')}" th:errors="*{author}" class="fieldError">에러 메시지</p>
     </div>
     <div class="form-group">
       <label th:for="isbn">ISBN</label>
       <input type="text" th:field="*{isbn}"class="form-control">
-      <!--      <p th:if="${#fields.hasErrors('isbn')}" th:errors="*{isbn}" class="fieldError">에러 메시지</p>-->
+            <p th:if="${#fields.hasErrors('isbn')}" th:errors="*{isbn}" class="fieldError">에러 메시지</p>
     </div>
     <div class="form-group">
       <label th:for="itemDetail" class="form-label">상세설명</label>
-      <input type="text" class="form-control" th:field="*{detailInfo}" >
-      <!--      <p th:if="${#fields.hasErrors('itemDetail')}" th:errors="*{itemDetail}" class="fieldError">에러 메시지</p>-->
+      <textarea type="text" class="form-control" th:field="*{detailInfo}"cols="40" rows="6" />
+            <p th:if="${#fields.hasErrors('detailInfo')}" th:errors="*{detailInfo}" class="fieldError">에러 메시지</p>
     </div>
     <div class="form-group">
       <label th:for="deliveryPrice" class="form-label">배달비</label>
@@ -106,11 +106,12 @@
 
     <div class="form-group">
       <label th:for="itemImage">상품 이미지</label>
-      <div class="custom-file img-div">
+      <div class="custom-file img-div" th:each="itemImgDto : ${item.itemImgDtoList}">
         <input type="file" class="custom-file-input" name="itemImgFile">
         <!-- 이전 이미지 ID -->
         <input type="hidden" name="itemImgId" th:value="${item.itemImgDtoList[0].id}">
-        <label class="custom-file-label" th:text="${not #strings.isEmpty(item.itemImgDtoList[0].originalName)} ? ${item.itemImgDtoList[0].originalName} : '상품이미지'"></label>
+        <label class="custom-file-label"  th:text="${not #strings.isEmpty(itemImgDto.originalName)} ? ${itemImgDto.originalName} : '상품이미지'" >
+        </label>
       </div>
     </div>
 

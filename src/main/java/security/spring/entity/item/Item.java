@@ -18,7 +18,7 @@ public abstract class Item {
 
     @Id@GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "item_Id")
-    private Long Id;
+    private Long id;
 
     private String itemName;
 
@@ -56,7 +56,7 @@ public abstract class Item {
 
 
     public void saveItem(Long id,String itemName, int price, String detailInfo, int stockQuantity,ItemSellStatus itemSellStatus,int deliveryPrice){
-        this.Id = id;
+        this.id = id;
         this.itemName = itemName;
         this.price = price;
         this.stockQuantity = stockQuantity;

@@ -104,8 +104,15 @@ public class ItemService {
                 List<ItemImg> files = item.getFiles();
 
                 if (!files.isEmpty()) {
-                    String imgName = files.get(0).getImgName();
-                    itemImgService.deleteImg(imgName);
+                    List<String> imgs = new ArrayList<>();
+                    for (ItemImg file : files) {
+                        if(!file.getImgName().isEmpty()) {
+                            String imgName = file.getImgName();
+                            imgs.add(imgName);
+                        }
+                    }
+
+                    itemImgService.deleteImg(imgs);
                 }
 
                 Basket byBaskItem = basketRepository.findByBaskItem(item);

@@ -7,10 +7,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import security.spring.entity.item.Basket;
-import security.spring.entity.item.Item;
 import security.spring.service.item.BasketService;
 
-import java.util.List;
 import java.util.Map;
 
 

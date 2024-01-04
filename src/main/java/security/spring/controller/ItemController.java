@@ -23,11 +23,11 @@ import security.spring.entity.item.Item;
 import security.spring.entity.item.ItemImg;
 import security.spring.entity.member.Member;
 import security.spring.service.item.BasketService;
+import security.spring.service.item.ItemImgService;
 import security.spring.service.item.ItemService;
 import security.spring.service.member.MemberService;
 
 import javax.validation.Valid;
-import java.io.IOException;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,6 +42,7 @@ public class ItemController {
     private final MemberService memberService;
     private final ItemService itemService;
     private final BasketService basketService;
+    private final ItemImgService itemImgService;
 
     @GetMapping("/addItem")
     public String addItem(Model model){
@@ -125,6 +126,7 @@ public class ItemController {
 
     @PostMapping("/item/delete/{id}")
     public String deleteItem(@PathVariable("id")Long itemId){
+        log.info("Controller itemId={}",itemId);
         itemService.deleteItem(itemId);
         return "redirect:/";
     }
@@ -143,8 +145,6 @@ public class ItemController {
             } catch (NumberFormatException e) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("유효하지 않은 itemId입니다.");
             }
-
-            // 여기서 예외가 발생하면 해당 예외를 catch하여 적절한 응답을 반환합니다.
             itemService.deleteItem(itemId);
 
             return ResponseEntity.ok("삭제 성공");
@@ -180,21 +180,16 @@ public class ItemController {
                 // 업데이트된 정보로 기존 ItemDto 업데이트
                 existingItem.setItemName(updatedItemDto.getItemName());
                 existingItem.setPrice(updatedItemDto.getPrice());
-                existingItem.setStockQuantity(updatedItemDto.getPrice());
+                existingItem.setStockQuantity(updatedItemDto.getStockQuantity());
                 existingItem.setDeliveryPrice(updatedItemDto.getDeliveryPrice());
                 existingItem.setAuthor(updatedItemDto.getAuthor());
                 existingItem.setIsbn(updatedItemDto.getIsbn());
+                existingItem.setDetailInfo(updatedItemDto.getDetailInfo());
                 existingItem.setItemSellStatus(updatedItemDto.getItemSellStatus());
+                List<ItemImg> files = existingItem.getFiles();
+                itemService.updateItem(existingItem);
+                itemImgService.updateImg(files,updatedItemImgFileList);
 
-
-                // 업데이트된 이미지 파일이 있는 경우
-                if (!updatedItemImgFileList.isEmpty()) {
-                    // 이미지 업데이트 로직 구현
-                    log.info("image={}",updatedItemImgFileList);
-                    itemService.saveItem(existingItem, updatedItemImgFileList);
-                } else {// 이미지가 업데이트되지 않은 경우
-                    itemService.updateItem(existingItem);
-                }
             } else {
                 model.addAttribute("errorMessage", "해당 상품을 찾을 수 없습니다.");
                 return "item/update-Item"; // 오류 처리
